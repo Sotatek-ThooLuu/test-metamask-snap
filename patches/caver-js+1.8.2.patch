@@ -1,0 +1,136 @@
+diff --git a/node_modules/caver-js/caver-cli/index.js b/node_modules/caver-js/caver-cli/index.js
+index 900bcf7..41092c2 100644
+--- a/node_modules/caver-js/caver-cli/index.js
++++ b/node_modules/caver-js/caver-cli/index.js
+@@ -16,9 +16,9 @@
+     along with the caver-js. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
++// const _ = require('lodash')
+ const fs = require('fs')
+ const jsonFormat = require('json-format')
+-const _ = require('lodash')
+ const chalk = require('chalk')
+ const figlet = require('figlet')
+ const inquirer = require('inquirer')
+@@ -91,7 +91,8 @@ const recur = () => {
+                         },
+                     ])
+                     .then(answers => {
+-                        const inputFormattersQuestion = _.range(answers.params).map((_, idx) => ({
++                        // const inputFormattersQuestion = _.range(answers.params).map((_, idx) => ({
++                        const inputFormattersQuestion = Array.from({ length: answers.params }, (v, i) => i).map((val, idx) => ({
+                             type: 'list',
+                             name: `${idx}inputParamFormatter`,
+                             message: `Do you want to format for the ${numberMapping[idx + 1]} input parameters?`,
+@@ -115,8 +116,8 @@ const recur = () => {
+                     })
+                     .then(([meta, formatter]) => {
+                         const formatters = Object.values(formatter)
+-                        const inputParamFormatters = _.omit(formatters, _.last(formatters))
+-                        const outputResultFormatter = _.last(formatters)
++                        const outputResultFormatter = formatters.pop()
++                        const inputParamFormatters = formatters
+                         const result =
+                             rpcList.push({
+                                 name: meta.label,
+@@ -151,16 +152,23 @@ const recur = () => {
+                         },
+                     ])
+                     .then(({ removeTargets }) => {
+-                        _.chain(rpcList)
+-                            .reject(({ name }) => _.contains(removeTargets, name))
+-                            .tap(result => {
+-                                fs.writeFile('../rpc.json', jsonFormat(result), err => {
+-                                    if (err) {
+-                                        return console.log('error occurred!')
+-                                    }
+-                                    reloadRpcFile()
+-                                })
+-                            })
++                        // _.chain(rpcList)
++                        //     .reject(({ name }) => _.contains(removeTargets, name))
++                        //     .tap(result => {
++                        //        fs.writeFile('../rpc.json', jsonFormat(result), err => {
++                        //             if (err) {
++                        //                 return console.log('error occurred!')
++                        //             }
++                        //             reloadRpcFile()
++                        //         })
++                        //     })
++                        const result = rpcList.filter(({ name }) => !removeTargets.find(item => item === name));
++                        fs.writeFile('../rpc.json', jsonFormat(result), err => {
++                            if (err) {
++                                return console.log('error occurred!');
++                            }
++                            reloadRpcFile();
++                        })
+ 
+                         recur()
+                     })
+diff --git a/node_modules/caver-js/index.js b/node_modules/caver-js/index.js
+index 7b49cc7..ae0f7b8 100644
+--- a/node_modules/caver-js/index.js
++++ b/node_modules/caver-js/index.js
+@@ -71,6 +71,7 @@ const { version } = require('./package.json')
+  * @constructor
+  * @param {string|HttpProvider|WebsocketProvider|IpcProvider} [provider] - The url string of the Node to connect with. You can pass the provider instance directly.
+  */
++
+ function Caver(provider, net) {
+     const _this = this
+ 
+diff --git a/node_modules/caver-js/packages/caver-abi/src/index.js b/node_modules/caver-js/packages/caver-abi/src/index.js
+index 9d14b5b..11dd4f1 100644
+--- a/node_modules/caver-js/packages/caver-abi/src/index.js
++++ b/node_modules/caver-js/packages/caver-abi/src/index.js
+@@ -25,14 +25,15 @@
+  * @date 2017
+  */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
+ 
+ const EthersAbiCoder = require('@ethersproject/abi').AbiCoder
+ const ParamType = require('@ethersproject/abi').ParamType
+ const utils = require('../../caver-utils')
+ 
+ const ethersAbiCoder = new EthersAbiCoder(function(type, value) {
+-    if (type.match(/^u?int/) && !_.isArray(value) && (!_.isObject(value) || value.constructor.name !== 'BN')) {
++    // if (type.match(/^u?int/) && !_.isArray(value) && (!_.isObject(value) || value.constructor.name !== 'BN')) {
++    if (type.match(/^u?int/) && !Array.isArray(value) && (typeof value !== 'object' || value.constructor.name !== 'BN')) {
+         return value.toString()
+     }
+     return value
+@@ -57,7 +58,8 @@ class ABI {
+      * @return {string} function signature
+      */
+     encodeFunctionSignature(functionSignature) {
+-        if (_.isObject(functionSignature)) {
++        // if (_.isObject(functionSignature)) {
++        if (typeof functionSignature === 'object') {
+             functionSignature = utils._jsonInterfaceMethodToString(functionSignature)
+         }
+ 
+@@ -79,7 +81,8 @@ class ABI {
+      * @return {string} event signature
+      */
+     encodeEventSignature(eventSignature) {
+-        if (_.isObject(eventSignature)) {
++        // if (_.isObject(eventSignature)) {
++        if (typeof eventSignature === 'object') {
+             eventSignature = utils._jsonInterfaceMethodToString(eventSignature)
+         }
+ 
+diff --git a/node_modules/caver-js/packages/caver-contract/src/index.js b/node_modules/caver-js/packages/caver-contract/src/index.js
+index 3828354..786f4a7 100644
+--- a/node_modules/caver-js/packages/caver-contract/src/index.js
++++ b/node_modules/caver-js/packages/caver-contract/src/index.js
+@@ -1454,6 +1454,7 @@ Contract.prototype._executeMethod = async function _executeMethod() {
+     const _this = this
+     const args = this._parent._processExecuteArguments.call(this, Array.prototype.slice.call(arguments), defer)
+     var defer = utils.promiEvent(args.type !== 'send') /* eslint-disable-line no-var */
++    
+     const klayAccounts = _this.constructor._klayAccounts || _this._klayAccounts
+     const wallet = _this._parent._wallet || _this._wallet
+ 
