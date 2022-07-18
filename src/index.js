@@ -1,3 +1,5 @@
+const Caver = require('caver-js');
+
 wallet.registerRpcMessageHandler(async (originString, requestObject) => {
   switch (requestObject.method) {
     case 'hello':

@@ -134,3 +134,1322 @@ index 3828354..786f4a7 100644
      const klayAccounts = _this.constructor._klayAccounts || _this._klayAccounts
      const wallet = _this._parent._wallet || _this._wallet
  
+diff --git a/node_modules/caver-js/packages/caver-utils/src/soliditySha3.js b/node_modules/caver-js/packages/caver-utils/src/soliditySha3.js
+index fc7d333..4aaac8d 100644
+--- a/node_modules/caver-js/packages/caver-utils/src/soliditySha3.js
++++ b/node_modules/caver-js/packages/caver-utils/src/soliditySha3.js
+@@ -25,6 +25,8 @@
+  */
+ 
+ const _ = require('lodash')
++const isObject = arg => arg instanceof Object;
++
+ const BN = require('bn.js')
+ const utils = require('./utils')
+ 
+diff --git a/node_modules/caver-js/packages/caver-utils/src/utils.js b/node_modules/caver-js/packages/caver-utils/src/utils.js
+index 1eea92f..ca19dd2 100644
+--- a/node_modules/caver-js/packages/caver-utils/src/utils.js
++++ b/node_modules/caver-js/packages/caver-utils/src/utils.js
+@@ -24,7 +24,15 @@
+  * @date 2017
+  */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
++const isString = arg => typeof arg === 'string';
++const isNumber = arg => typeof arg === 'number';
++const isObject = arg => arg instanceof Object;
++const isFunction = arg => typeof arg === 'function';
++const isBoolean = arg => arg === !!arg;
++const isNull = val => val === null;
++const isUndefined = val => val === undefined;
++
+ const BN = require('bn.js')
+ const BigNumber = require('bignumber.js')
+ const numberToBN = require('number-to-bn')
+@@ -361,7 +369,7 @@ const hexToNumber = function(value) {
+ const hexToNumberString = function(value) {
+     if (!value) return value
+ 
+-    if (_.isString(value) && !isHexStrict(value)) {
++    if (isString(value) && !isHexStrict(value)) {
+         throw new Error(`Given value "${value}" is not a valid hex string.`)
+     }
+ 
+@@ -384,7 +392,7 @@ const hexToNumberString = function(value) {
+  * @return {string} The HEX value of the given number.
+  */
+ const numberToHex = function(value) {
+-    if (_.isNumber(value)) {
++    if (isNumber(value)) {
+         const bn = toBN(value)
+         try {
+             bn.toNumber()
+@@ -393,7 +401,7 @@ const numberToHex = function(value) {
+         }
+     }
+ 
+-    if (_.isNull(value) || _.isUndefined(value)) {
++    if (isNull(value) || isUndefined(value)) {
+         return value
+     }
+ 
+@@ -486,16 +494,16 @@ const toHex = function(value, returnType) {
+         return returnType ? 'address' : `0x${value.toLowerCase().replace(/^0x/i, '')}`
+     }
+ 
+-    if (_.isBoolean(value)) {
++    if (isBoolean(value)) {
+         return returnType ? 'bool' : value ? '0x01' : '0x00'
+     }
+ 
+-    if (_.isObject(value) && !isBigNumber(value) && !isBN(value)) {
++    if (isObject(value) && !isBigNumber(value) && !isBN(value)) {
+         return returnType ? 'string' : utf8ToHex(JSON.stringify(value))
+     }
+ 
+     // if its a negative number, pass it through numberToHex
+-    if (_.isString(value)) {
++    if (isString(value)) {
+         if (value.indexOf('-0x') === 0 || value.indexOf('-0X') === 0) {
+             return returnType ? 'int256' : numberToHex(value)
+         }
+@@ -556,8 +564,8 @@ const toBuffer = function(input) {
+     if (Array.isArray(input)) return Buffer.from(input)
+     if (isBigNumber(input)) input = toBN(input)
+     if (isBN(input)) return input.toArrayLike(Buffer)
+-    if (_.isObject(input)) {
+-        if (input.toArray && _.isFunction(input.toArray)) return Buffer.from(input.toArray())
++    if (isObject(input)) {
++        if (input.toArray && isFunction(input.toArray)) return Buffer.from(input.toArray())
+         throw new Error('To convert an object to a buffer, the toArray function must be implemented inside the object')
+     }
+ 
+@@ -608,7 +616,7 @@ const numberToBuffer = function(num) {
+  * @returns {boolean} `true` if a given string is a HEX string.
+  */
+ const isHexStrict = function(hex) {
+-    return (_.isString(hex) || _.isNumber(hex)) && /^(-)?0x[0-9a-f]*$/i.test(hex)
++    return (isString(hex) || isNumber(hex)) && /^(-)?0x[0-9a-f]*$/i.test(hex)
+ }
+ 
+ /**
+@@ -626,7 +634,7 @@ const isHexStrict = function(hex) {
+  * @returns {boolean} `true` if a given parameter is a HEX string.
+  */
+ const isHex = function(hex) {
+-    return (_.isString(hex) || _.isNumber(hex)) && /^(-0x|0x)?[0-9a-f]*$/i.test(hex)
++    return (isString(hex) || isNumber(hex)) && /^(-0x|0x)?[0-9a-f]*$/i.test(hex)
+ }
+ 
+ /**
+@@ -913,7 +921,7 @@ function parseKlaytnWalletKey(key) {
+  * @return {boolean} `true` means valid KlaytnWalletKey.
+  */
+ const isKlaytnWalletKey = privateKey => {
+-    if (!_.isString(privateKey)) return false
++    if (!isString(privateKey)) return false
+ 
+     const has0xPrefix = privateKey.slice(0, 2) === '0x'
+     privateKey = has0xPrefix ? privateKey.slice(2) : privateKey
+@@ -1069,12 +1077,12 @@ const makeEven = function(hex) {
+  * @return {Array.<string>} A signature array.
+  */
+ const resolveSignature = signature => {
+-    if (_.isArray(signature)) {
++    if (Array.isArray(signature)) {
+         const [v, r, s] = signature
+         return [v, r, s]
+     }
+ 
+-    if (_.isObject(signature)) {
++    if (isObject(signature)) {
+         const v = signature.V || signature.v
+         const r = signature.R || signature.r
+         const s = signature.S || signature.s
+@@ -1083,7 +1091,7 @@ const resolveSignature = signature => {
+         return [v, r, s]
+     }
+ 
+-    if (_.isString(signature)) {
++    if (isString(signature)) {
+         const v = `0x${signature.slice(64 * 2 + 2)}`
+         const decoded = Account.decodeSignature(signature)
+         return [v, decoded[1], decoded[2]]
+@@ -1119,10 +1127,10 @@ const transformSignaturesToObject = signatures => {
+     // case 6. [['0x4e44', '0x1692a...', '0x277b9...'], ['0x4e44', '0x1692a...', '0x277b9...']]
+ 
+     // Transform a signature to an array of signatures to execute the same logic in the for loop below.
+-    if (!_.isArray(signatures)) {
++    if (!Array.isArray(signatures)) {
+         signatures = [signatures]
+         isSingular = true
+-    } else if (_.isString(signatures[0])) {
++    } else if (isString(signatures[0])) {
+         // This logic is performed for case 3 and case 4.
+         // In case 3, the signature string is in the array.
+         // In case 4, v, r, and s are separately included in the array.
+@@ -1139,19 +1147,19 @@ const transformSignaturesToObject = signatures => {
+ 
+     for (const sig of signatures) {
+         const sigObj = {}
+-        if (_.isArray(sig)) {
++        if (Array.isArray(sig)) {
+             if (sig.length !== 3) throw new Error(`Failed to transform signatures to object: invalid length of signature (${sig.length})`)
+             if (isEmptySig(sig)) continue
+             const [V, R, S] = sig
+             sigObj.V = V
+             sigObj.R = R
+             sigObj.S = S
+-        } else if (_.isString(sig)) {
++        } else if (isString(sig)) {
+             const decoded = Account.decodeSignature(sig).map(s => makeEven(trimLeadingZero(s)))
+             sigObj.V = decoded[0]
+             sigObj.R = decoded[1]
+             sigObj.S = decoded[2]
+-        } else if (_.isObject(sig)) {
++        } else if (isObject(sig)) {
+             Object.keys(sig).map(key => {
+                 if (key === 'v' || key === 'V' || key === '_v') {
+                     sigObj.V = sig[key]
+@@ -1373,12 +1381,12 @@ const isEmptySig = sig => {
+     let sigs = sig
+ 
+     // Convert to array format
+-    if (!_.isArray(sig)) sigs = resolveSignature(sigs)
++    if (!Array.isArray(sig)) sigs = resolveSignature(sigs)
+     // Format to two-dimentional array
+-    if (_.isString(sigs[0])) sigs = [sigs]
++    if (isString(sigs[0])) sigs = [sigs]
+ 
+     for (let s of sigs) {
+-        if (!_.isArray(s)) s = resolveSignature(s)
++        if (!Array.isArray(s)) s = resolveSignature(s)
+         if (s.length !== 3) throw new Error(`Invalid signatures length: ${s.length}`)
+         if (s[0] !== '0x01' || s[1] !== '0x' || s[2] !== '0x') return false
+     }
+@@ -1428,7 +1436,7 @@ const hashMessage = data => {
+ const recoverPublicKey = (message, signature, isHashed = false) => {
+     if (!isHashed) message = hashMessage(message)
+ 
+-    if (_.isArray(signature)) signature = { v: signature[0], r: signature[1], s: signature[2] }
++    if (Array.isArray(signature)) signature = { v: signature[0], r: signature[1], s: signature[2] }
+     const vrs = { v: parseInt(signature.v.slice(2), 16), r: signature.r.slice(2), s: signature.s.slice(2) }
+ 
+     const ecPublicKey = secp256k1.recoverPubKey(Buffer.from(message.slice(2), 'hex'), vrs, vrs.v < 2 ? vrs.v : 1 - (vrs.v % 2))
+diff --git a/node_modules/caver-js/packages/caver-wallet/src/index.js b/node_modules/caver-js/packages/caver-wallet/src/index.js
+index 8d5086e..c266eea 100644
+--- a/node_modules/caver-js/packages/caver-wallet/src/index.js
++++ b/node_modules/caver-js/packages/caver-wallet/src/index.js
+@@ -16,7 +16,9 @@
+     along with the caver-js. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
++const isString = arg => typeof arg === 'string';
++
+ const Keyring = require('./keyring/keyringFactory')
+ const SingleKeyring = require('./keyring/singleKeyring')
+ const MultipleKeyring = require('./keyring/multipleKeyring')
+@@ -115,11 +117,11 @@ class KeyringContainer {
+ 
+         let keyring
+ 
+-        if (_.isString(key)) keyring = Keyring.createWithSingleKey(address, key)
++        if (isString(key)) keyring = Keyring.createWithSingleKey(address, key)
+ 
+-        if (_.isArray(key)) {
++        if (Array.isArray(key)) {
+             if (key.length === 0) throw new Error(`Insufficient private key information: Empty array`)
+-            if (_.isArray(key[0])) {
++            if (Array.isArray(key[0])) {
+                 keyring = Keyring.createWithRoleBasedKey(address, key)
+             } else {
+                 keyring = Keyring.createWithMultipleKey(address, key)
+diff --git a/node_modules/caver-js/packages/caver-wallet/src/keyring/keyringFactory.js b/node_modules/caver-js/packages/caver-wallet/src/keyring/keyringFactory.js
+index 3979f63..1f7195c 100644
+--- a/node_modules/caver-js/packages/caver-wallet/src/keyring/keyringFactory.js
++++ b/node_modules/caver-js/packages/caver-wallet/src/keyring/keyringFactory.js
+@@ -16,7 +16,11 @@
+     along with the caver-js. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
++const isString = arg => typeof arg === 'string';
++const isNumber = arg => typeof arg === 'number';
++const isObject = arg => arg instanceof Object;
++
+ const AccountLib = require('eth-lib/lib/account')
+ 
+ const utils = require('../../../caver-utils/src')
+@@ -72,7 +76,7 @@ class KeyringFactory {
+      * @return {Array.<string>} An array that includes private key strings is returned.
+      */
+     static generateMultipleKeys(num, entropy) {
+-        if (num === undefined || !_.isNumber(num) || _.isString(num)) {
++        if (num === undefined || !isNumber(num) || isString(num)) {
+             throw new Error(`To generate random multiple private keys, the number of keys should be defined.`)
+         }
+ 
+@@ -94,7 +98,7 @@ class KeyringFactory {
+      * @return {Array.<Array.<string>>} A 2D array of which each array element contains keys defined for each role is returned.
+      */
+     static generateRoleBasedKeys(numArr, entropy) {
+-        if (numArr === undefined || !_.isArray(numArr) || _.isString(numArr)) {
++        if (numArr === undefined || !Array.isArray(numArr) || isString(numArr)) {
+             throw new Error(
+                 `To generate random role-based private keys, an array containing the number of keys for each role should be defined.`
+             )
+@@ -129,7 +133,7 @@ class KeyringFactory {
+      * @return {KeyringContainer.Keyring} The keyring instance is returned. Depending on the key parameter, it can be {@link SingleKeyring}, {@link MultipleKeyring} or {@link RoleBasedKeyring}.
+      */
+     static create(address, key) {
+-        if (_.isString(key)) return KeyringFactory.createWithSingleKey(address, key)
++        if (isString(key)) return KeyringFactory.createWithSingleKey(address, key)
+         if (isMultipleKeysFormat(key)) return KeyringFactory.createWithMultipleKey(address, key)
+         if (isRoleBasedKeysFormat(key)) return KeyringFactory.createWithRoleBasedKey(address, key)
+ 
+@@ -146,7 +150,7 @@ class KeyringFactory {
+      * @return {SingleKeyring} The SingleKeyring instance is returned.
+      */
+     static createFromPrivateKey(privateKey) {
+-        if (!_.isString(privateKey)) throw new Error(`Invalid format of parameter. 'privateKey' should be in format of string`)
++        if (!isString(privateKey)) throw new Error(`Invalid format of parameter. 'privateKey' should be in format of string`)
+         if (utils.isKlaytnWalletKey(privateKey)) return KeyringFactory.createFromKlaytnWalletKey(privateKey)
+ 
+         const acct = AccountLib.fromPrivate(utils.addHexPrefix(privateKey))
+@@ -163,7 +167,7 @@ class KeyringFactory {
+      * @return {SingleKeyring} The SingleKeyring instance is returned.
+      */
+     static createFromKlaytnWalletKey(klaytnWalletKey) {
+-        if (!_.isString(klaytnWalletKey)) throw new Error(`Invalid format of parameter. 'klaytnWalletKey' should be in format of string`)
++        if (!isString(klaytnWalletKey)) throw new Error(`Invalid format of parameter. 'klaytnWalletKey' should be in format of string`)
+         if (!utils.isKlaytnWalletKey(klaytnWalletKey)) {
+             throw new Error(`Invalid KlaytnWalletKey: ${klaytnWalletKey}`)
+         }
+@@ -182,7 +186,7 @@ class KeyringFactory {
+      * @return {SingleKeyring} The {@link SingleKeyring} instance is returned.
+      */
+     static createWithSingleKey(address, key) {
+-        if (!_.isString(key))
++        if (!isString(key))
+             throw new Error(`Invalid format of parameter. Use 'fromMultipleKey' or 'fromRoleBasedKey' for two or more keys.`)
+         if (utils.isKlaytnWalletKey(key))
+             throw new Error(`Invalid format of parameter. Use 'fromKlaytnWalletKey' to create Keyring from KlaytnWalletKey.`)
+@@ -388,7 +392,7 @@ class KeyringFactory {
+      */
+     static decrypt(keystore, password) {
+         // To deep copy an object, using JSON.parse and JSON.stringify (object -> string -> object)
+-        const json = _.isObject(keystore) ? _.cloneDeep(keystore) : JSON.parse(keystore)
++        const json = isObject(keystore) ? JSON.parse(JSON.stringify(keystore)) : JSON.parse(keystore)
+ 
+         if (json.version !== 3 && json.version !== 4) console.warn('This is not a V3 or V4 wallet.')
+ 
+@@ -406,7 +410,7 @@ class KeyringFactory {
+         }
+ 
+         // AccountKeyRoleBased format
+-        if (_.isArray(json.keyring[0])) {
++        if (Array.isArray(json.keyring[0])) {
+             const keys = []
+             const transactionKey = decryptKey(json.keyring[KEY_ROLE.roleTransactionKey], password)
+             transactionKey ? keys.push(transactionKey) : keys.push([])
+@@ -421,7 +425,7 @@ class KeyringFactory {
+         }
+ 
+         let decrypted = decryptKey(json.keyring, password)
+-        decrypted = _.isArray(decrypted) ? decrypted : [decrypted]
++        decrypted = Array.isArray(decrypted) ? decrypted : [decrypted]
+         if (decrypted.length === 1) return KeyringFactory.createWithSingleKey(json.address, decrypted[0])
+ 
+         return KeyringFactory.createWithMultipleKey(json.address, decrypted)
+diff --git a/node_modules/caver-js/packages/caver-wallet/src/keyring/keyringHelper.js b/node_modules/caver-js/packages/caver-wallet/src/keyring/keyringHelper.js
+index 284d227..c454bfe 100644
+--- a/node_modules/caver-js/packages/caver-wallet/src/keyring/keyringHelper.js
++++ b/node_modules/caver-js/packages/caver-wallet/src/keyring/keyringHelper.js
+@@ -16,7 +16,10 @@
+     along with the caver-js. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
++const isString = arg => typeof arg === 'string';
++const isNumber = arg => typeof arg === 'number';
++
+ const scrypt = require('scrypt-js')
+ const uuid = require('uuid')
+ const cryp = typeof global === 'undefined' ? require('crypto-browserify') : require('crypto')
+@@ -47,18 +50,18 @@ const KEY_ROLE = {
+ const MAXIMUM_KEY_NUM = 10
+ 
+ const isMultipleKeysFormat = keys => {
+-    if (!_.isArray(keys)) return false
++    if (!Array.isArray(keys)) return false
+     return keys.every(key => {
+-        return _.isString(key)
++        return isString(key)
+     })
+ }
+ 
+ const isRoleBasedKeysFormat = roledBasedKeyArray => {
+-    if (!_.isArray(roledBasedKeyArray)) return false
++    if (!Array.isArray(roledBasedKeyArray)) return false
+     if (roledBasedKeyArray.length > KEY_ROLE.roleLast) return false
+ 
+     return roledBasedKeyArray.every(arr => {
+-        return _.isArray(arr)
++        return Array.isArray(arr)
+     })
+ }
+ 
+@@ -71,7 +74,7 @@ const validateForSigning = (hash, chainId) => {
+ }
+ 
+ const validateIndexWithKeys = (index, keyLength) => {
+-    if (!_.isNumber(index)) throw new Error(`Invalid type of index(${index}): index should be number type.`)
++    if (!isNumber(index)) throw new Error(`Invalid type of index(${index}): index should be number type.`)
+     if (index < 0) throw new Error(`Invalid index(${index}): index cannot be negative.`)
+     if (index >= keyLength) throw new Error(`Invalid index(${index}): index must be less than the length of keys(${keyLength}).`)
+ }
+@@ -130,7 +133,7 @@ const encryptKey = (privateKey, password, options) => {
+ 
+     if (!privateKey) return encryptedArray
+ 
+-    const privateKeyArray = _.isArray(privateKey) ? privateKey : [privateKey]
++    const privateKeyArray = Array.isArray(privateKey) ? privateKey : [privateKey]
+ 
+     for (let i = 0; i < privateKeyArray.length; i++) {
+         const salt = options.salt || cryp.randomBytes(32)
+diff --git a/node_modules/caver-js/packages/caver-wallet/src/keyring/multipleKeyring.js b/node_modules/caver-js/packages/caver-wallet/src/keyring/multipleKeyring.js
+index 2dd1e0f..52c1608 100644
+--- a/node_modules/caver-js/packages/caver-wallet/src/keyring/multipleKeyring.js
++++ b/node_modules/caver-js/packages/caver-wallet/src/keyring/multipleKeyring.js
+@@ -19,7 +19,7 @@
+ /* eslint-disable no-unused-vars */
+ /* eslint-disable class-methods-use-this */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
+ const utils = require('../../../caver-utils')
+ const PrivateKey = require('./privateKey')
+ const { KEY_ROLE } = require('./keyringHelper')
+@@ -261,7 +261,7 @@ class MultipleKeyring {
+      * @return {Account} An Account instance to be used when a user updates AccountKey for their account in the Klaytn. Note that if you want to replace the existing keyring (or the existing private key) with a new keyring (or a new private key) for your account, you must update your AccountKey by sending an Account Update transaction to Klaytn beforehand.
+      */
+     toAccount(options) {
+-        if (_.isArray(options))
++        if (Array.isArray(options))
+             throw new Error(`For AccountKeyWeightedMultiSig, options cannot be defined as an array of WeightedMultiSigOptions.`)
+ 
+         options = fillWeightedMultiSigOptionsForMultiSig(this.keys.length, options)
+@@ -355,7 +355,7 @@ module.exports = MultipleKeyring
+  * @return {Array.<PrivateKey>}
+  */
+ function formattingForKeyInKeyring(keyInput) {
+-    if (!_.isArray(keyInput)) {
++    if (!Array.isArray(keyInput)) {
+         throw new Error(`Invalid parameter. The private keys to add should be defined as an array.`)
+     }
+ 
+diff --git a/node_modules/caver-js/packages/caver-wallet/src/keyring/roleBasedKeyring.js b/node_modules/caver-js/packages/caver-wallet/src/keyring/roleBasedKeyring.js
+index 79831ae..657c495 100644
+--- a/node_modules/caver-js/packages/caver-wallet/src/keyring/roleBasedKeyring.js
++++ b/node_modules/caver-js/packages/caver-wallet/src/keyring/roleBasedKeyring.js
+@@ -19,7 +19,8 @@
+ /* eslint-disable no-unused-vars */
+ /* eslint-disable class-methods-use-this */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
++const isString = arg => typeof arg === 'string';
+ 
+ const utils = require('../../../caver-utils')
+ const PrivateKey = require('./privateKey')
+@@ -291,7 +292,7 @@ class RoleBasedKeyring {
+      * @return {Account} An Account instance to be used when a user updates AccountKey for their account in the Klaytn. Note that if you want to replace the existing keyring (or the existing private key) with a new keyring (or a new private key) for your account, you must update your AccountKey by sending an Account Update transaction to Klaytn beforehand.
+      */
+     toAccount(options) {
+-        if (options !== undefined && !_.isArray(options))
++        if (options !== undefined && !Array.isArray(options))
+             throw new Error(`options for an account should define threshold and weight for each roles in an array format`)
+ 
+         const lengths = []
+@@ -405,7 +406,7 @@ function formattingForKeyInKeyring(keyInput) {
+         return keyInput
+     }
+ 
+-    if (keyInput instanceof PrivateKey || _.isString(keyInput)) {
++    if (keyInput instanceof PrivateKey || isString(keyInput)) {
+         keyInput = [[keyInput], [], []]
+     } else if (isMultipleKeysFormat(keyInput)) {
+         // [`0x{private key}`, `0x{private key}`, `0x{private key}`]
+diff --git a/node_modules/caver-js/packages/caver-wallet/src/keyring/signatureData.js b/node_modules/caver-js/packages/caver-wallet/src/keyring/signatureData.js
+index 09e90b5..b30914d 100644
+--- a/node_modules/caver-js/packages/caver-wallet/src/keyring/signatureData.js
++++ b/node_modules/caver-js/packages/caver-wallet/src/keyring/signatureData.js
+@@ -16,7 +16,7 @@
+     along with the caver-js. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
+ const utils = require('../../../caver-utils/src/utils')
+ 
+ const emptySigArray = ['0x01', '0x', '0x']
+@@ -49,7 +49,7 @@ class SignatureData {
+             this.r = signature.r
+             this.s = signature.s
+         }
+-        if (!_.isArray(signature)) signature = utils.resolveSignature(signature)
++        if (!Array.isArray(signature)) signature = utils.resolveSignature(signature)
+ 
+         const [v, r, s] = signature
+         this.v = v
+diff --git a/node_modules/caver-js/test/abi.decodeParameter.js b/node_modules/caver-js/test/abi.decodeParameter.js
+index c202793..0ba63e1 100644
+--- a/node_modules/caver-js/test/abi.decodeParameter.js
++++ b/node_modules/caver-js/test/abi.decodeParameter.js
+@@ -19,7 +19,7 @@
+     Modified and improved for the caver-js development.
+ */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
+ const chai = require('chai')
+ 
+ const assert = chai.assert
+@@ -597,7 +597,7 @@ describe('caver.abi.decodeParameters', function() {
+                 const result = coder.decodeParameters(t.types, t.values)
+                 const resultArray = []
+                 Object.keys(result).map(k => {
+-                    if (_.isFinite(Number(k))) resultArray.push(result[k])
++                    if (Number.isFinite(Number(k))) resultArray.push(result[k])
+                 })
+ 
+                 assert.deepEqual(resultArray, t.expected)
+diff --git a/node_modules/caver-js/test/conformanceTest.js b/node_modules/caver-js/test/conformanceTest.js
+index 8609d08..260f62c 100644
+--- a/node_modules/caver-js/test/conformanceTest.js
++++ b/node_modules/caver-js/test/conformanceTest.js
+@@ -18,7 +18,7 @@
+ 
+ const path = require('path')
+ const fs = require('fs')
+-const _ = require('lodash')
++// const _ = require('lodash')
+ 
+ const chai = require('chai')
+ const sinon = require('sinon')
+@@ -38,6 +38,9 @@ const utils = require('../packages/caver-utils')
+ const comformanceTests = path.join(__dirname, '/../caver-conformance-tests')
+ const SignatureData = require('../packages/caver-wallet/src/keyring/signatureData')
+ 
++const isObject = arg => arg instanceof Object;
++const isString = arg => typeof arg === 'string';
++
+ describe('Caver Common Architecture Conformance Tests', () => {
+     // caver-conformance-tests/LayerName/ClassName/functionName.json
+     const layers = fs.readdirSync(comformanceTests, { withFileTypes: true })
+@@ -218,7 +221,7 @@ function convertObjectToArray(caver, obj) {
+     for (const k of keys) {
+         // If `accountKey` is a key string, then create an AccountKey instance
+         // using account key object defined in JSON file.
+-        if (_.isObject(obj[k]) && k === 'accountKey') {
++        if (isObject(obj[k]) && k === 'accountKey') {
+             obj[k] = createAccountKeyInstance(caver, obj[k])
+         }
+         params.push(obj[k])
+@@ -352,9 +355,9 @@ function formatPackageNaming(name) {
+ }
+ 
+ function compareResult(result, expectedResult) {
+-    if (_.isArray(result)) {
++    if (Array.isArray(result)) {
+         if (result.length > 0) {
+-            if (!_.isObject(result[0])) {
++            if (!isObject(result[0])) {
+                 expect(result.toString()).to.equal(expectedResult.toString())
+             } else {
+                 for (let i = 0; i < result.length; i++) {
+@@ -362,7 +365,7 @@ function compareResult(result, expectedResult) {
+                 }
+             }
+         }
+-    } else if (_.isObject(result)) {
++    } else if (isObject(result)) {
+         if (result instanceof SignatureData) return result.isEqual(expectedResult)
+ 
+         expect(result.constructor.name).to.equal(expectedResult.constructor.name)
+@@ -374,7 +377,7 @@ function compareResult(result, expectedResult) {
+             }
+             compareResult(result[key], expectedResult[key])
+         }
+-    } else if (_.isString(result)) {
++    } else if (isString(result)) {
+         expect(result.toLowerCase()).to.equal(expectedResult.toLowerCase())
+     } else {
+         expect(result).to.equal(expectedResult)
+@@ -389,7 +392,7 @@ function getInputValues(inputArray, preRequisites) {
+         // the parameter is defined in the form of 'preRequisites[index]'.
+         // In this case, instead of the 'preRequisites[index]' string,
+         // the index-th instance of preRequisites should be transmitted as a parameter.
+-        if (_.isString(inputArray[i]) && inputArray[i].includes('preRequisites')) {
++        if (isString(inputArray[i]) && inputArray[i].includes('preRequisites')) {
+             const index = Number(inputArray[i].slice(inputArray[i].indexOf('[') + 1, inputArray[i].indexOf(']')))
+             inputs.push(preRequisites[index])
+             continue
+diff --git a/node_modules/caver-js/test/intTest.js b/node_modules/caver-js/test/intTest.js
+index fc64472..bcce685 100644
+--- a/node_modules/caver-js/test/intTest.js
++++ b/node_modules/caver-js/test/intTest.js
+@@ -27,7 +27,7 @@
+ // To execute a specific test,
+ // $ mocha --grep INT-LEGACY/012 test/intTest.js
+ // In `caver-js/package.json`, the test scripts are defined. (ex: `npm run intTxTest`, ...)
+-const _ = require('lodash')
++// const _ = require('lodash')
+ const RLP = require('eth-lib/lib/rlp')
+ const Bytes = require('eth-lib/lib/bytes')
+ 
+@@ -228,7 +228,7 @@ async function processCall(t) {
+     const params = replaceWithEnv(t.call.params)
+ 
+     let value = await contract.methods[t.call.method](...params).call({ from })
+-    if (_.isString(value)) value = value.toLowerCase()
++    if (typeof value === 'string') value = value.toLowerCase()
+     expect(value).to.equal(replaceWithEnv(t.expected.returns))
+ }
+ 
+diff --git a/node_modules/caver-js/test/packages/caver.account.accountKey.js b/node_modules/caver-js/test/packages/caver.account.accountKey.js
+index a68c6d4..64caa44 100644
+--- a/node_modules/caver-js/test/packages/caver.account.accountKey.js
++++ b/node_modules/caver-js/test/packages/caver.account.accountKey.js
+@@ -16,7 +16,7 @@
+     along with the caver-js. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
+ const chai = require('chai')
+ const sinonChai = require('sinon-chai')
+ const chaiAsPromised = require('chai-as-promised')
+@@ -65,10 +65,10 @@ function testAccountKey(accountKey, expectedAccountKeyType, options = {}) {
+             for (let i = 0; i < accountKey.accountKeys.length; i++) {
+                 const acctKey = accountKey.accountKeys[i]
+                 if (acctKey instanceof AccountKeyLegacy) {
+-                    expectedAccountKey[i] = _.isArray(expectedAccountKey[i]) ? expectedAccountKey[i][0] : expectedAccountKey[i]
++                    expectedAccountKey[i] = Array.isArray(expectedAccountKey[i]) ? expectedAccountKey[i][0] : expectedAccountKey[i]
+                     expect(expectedAccountKey[i] instanceof AccountKeyLegacy)
+                 } else if (acctKey instanceof AccountKeyFail) {
+-                    expectedAccountKey[i] = _.isArray(expectedAccountKey[i]) ? expectedAccountKey[i][0] : expectedAccountKey[i]
++                    expectedAccountKey[i] = Array.isArray(expectedAccountKey[i]) ? expectedAccountKey[i][0] : expectedAccountKey[i]
+                     expect(expectedAccountKey[i] instanceof AccountKeyFail)
+                 } else if (acctKey instanceof AccountKeyPublic) {
+                     testAccountKeyPublic(acctKey, expectedAccountKey[i][0])
+diff --git a/node_modules/caver-js/test/packages/caver.kct.kip37.js b/node_modules/caver-js/test/packages/caver.kct.kip37.js
+index 4d9ae16..c042593 100644
+--- a/node_modules/caver-js/test/packages/caver.kct.kip37.js
++++ b/node_modules/caver-js/test/packages/caver.kct.kip37.js
+@@ -17,7 +17,7 @@
+ */
+ 
+ const BigNumber = require('bignumber.js')
+-const _ = require('lodash')
++// const _ = require('lodash')
+ 
+ const testRPCURL = require('../testrpc')
+ const { expect } = require('../extendedChai')
+@@ -294,7 +294,7 @@ describe('KIP37 token contract class test', () => {
+             expect(minted.from).to.be.equals(sender.address.toLowerCase())
+             expect(minted.status).to.be.true
+             expect(minted.events).not.to.be.undefined
+-            expect(_.isArray(minted.events.TransferSingle)).to.be.true
++            expect(Array.isArray(minted.events.TransferSingle)).to.be.true
+             expect(minted.events.TransferSingle.length).to.equal(3)
+             expect(minted.events.TransferSingle[0].address).to.equal(kip37Address)
+             expect(minted.events.TransferSingle[0].returnValues.operator.toLowerCase()).to.equal(sender.address.toLowerCase())
+@@ -327,7 +327,7 @@ describe('KIP37 token contract class test', () => {
+             expect(minted.from).to.be.equals(sender.address.toLowerCase())
+             expect(minted.status).to.be.true
+             expect(minted.events).not.to.be.undefined
+-            expect(_.isArray(minted.events.TransferSingle)).to.be.true
++            expect(Array.isArray(minted.events.TransferSingle)).to.be.true
+             expect(minted.events.TransferSingle.length).to.equal(3)
+             expect(minted.events.TransferSingle[0].address).to.equal(kip37Address)
+             expect(minted.events.TransferSingle[0].returnValues.operator.toLowerCase()).to.equal(sender.address.toLowerCase())
+@@ -569,8 +569,8 @@ describe('KIP37 token contract class test', () => {
+             expect(transfered.events.TransferBatch.returnValues.operator.toLowerCase()).to.equal(sender.address.toLowerCase())
+             expect(transfered.events.TransferBatch.returnValues.from.toLowerCase()).to.equal(sender.address.toLowerCase())
+             expect(transfered.events.TransferBatch.returnValues.to.toLowerCase()).to.equal(receiver.address.toLowerCase())
+-            expect(_.isArray(transfered.events.TransferBatch.returnValues.ids)).to.be.true
+-            expect(_.isArray(transfered.events.TransferBatch.returnValues.values)).to.be.true
++            expect(Array.isArray(transfered.events.TransferBatch.returnValues.ids)).to.be.true
++            expect(Array.isArray(transfered.events.TransferBatch.returnValues.values)).to.be.true
+             expect(transfered.events.TransferBatch.returnValues.ids.length).to.equal(ids.length)
+             expect(transfered.events.TransferBatch.returnValues.values.length).to.equal(ids.length)
+             for (let i = 0; i < ids.length; i++) {
+@@ -596,8 +596,8 @@ describe('KIP37 token contract class test', () => {
+             expect(transfered.events.TransferBatch.returnValues.operator.toLowerCase()).to.equal(testAccount.address.toLowerCase())
+             expect(transfered.events.TransferBatch.returnValues.from.toLowerCase()).to.equal(sender.address.toLowerCase())
+             expect(transfered.events.TransferBatch.returnValues.to.toLowerCase()).to.equal(receiver.address.toLowerCase())
+-            expect(_.isArray(transfered.events.TransferBatch.returnValues.ids)).to.be.true
+-            expect(_.isArray(transfered.events.TransferBatch.returnValues.values)).to.be.true
++            expect(Array.isArray(transfered.events.TransferBatch.returnValues.ids)).to.be.true
++            expect(Array.isArray(transfered.events.TransferBatch.returnValues.values)).to.be.true
+             expect(transfered.events.TransferBatch.returnValues.ids.length).to.equal(ids.length)
+             expect(transfered.events.TransferBatch.returnValues.values.length).to.equal(ids.length)
+             for (let i = 0; i < ids.length; i++) {
+@@ -623,8 +623,8 @@ describe('KIP37 token contract class test', () => {
+             expect(transfered.events.TransferBatch.returnValues.operator.toLowerCase()).to.equal(sender.address.toLowerCase())
+             expect(transfered.events.TransferBatch.returnValues.from.toLowerCase()).to.equal(sender.address.toLowerCase())
+             expect(transfered.events.TransferBatch.returnValues.to.toLowerCase()).to.equal(receiver.address.toLowerCase())
+-            expect(_.isArray(transfered.events.TransferBatch.returnValues.ids)).to.be.true
+-            expect(_.isArray(transfered.events.TransferBatch.returnValues.values)).to.be.true
++            expect(Array.isArray(transfered.events.TransferBatch.returnValues.ids)).to.be.true
++            expect(Array.isArray(transfered.events.TransferBatch.returnValues.values)).to.be.true
+             expect(transfered.events.TransferBatch.returnValues.ids.length).to.equal(ids.length)
+             expect(transfered.events.TransferBatch.returnValues.values.length).to.equal(ids.length)
+             for (let i = 0; i < ids.length; i++) {
+@@ -652,8 +652,8 @@ describe('KIP37 token contract class test', () => {
+             expect(minted.events.TransferBatch.returnValues.operator.toLowerCase()).to.equal(sender.address.toLowerCase())
+             expect(minted.events.TransferBatch.returnValues.from.toLowerCase()).to.equal('0x0000000000000000000000000000000000000000')
+             expect(minted.events.TransferBatch.returnValues.to.toLowerCase()).to.equal(testAccount.address.toLowerCase())
+-            expect(_.isArray(minted.events.TransferBatch.returnValues.ids)).to.be.true
+-            expect(_.isArray(minted.events.TransferBatch.returnValues.values)).to.be.true
++            expect(Array.isArray(minted.events.TransferBatch.returnValues.ids)).to.be.true
++            expect(Array.isArray(minted.events.TransferBatch.returnValues.values)).to.be.true
+             expect(minted.events.TransferBatch.returnValues.ids.length).to.equal(ids.length)
+             expect(minted.events.TransferBatch.returnValues.values.length).to.equal(ids.length)
+             for (let i = 0; i < ids.length; i++) {
+@@ -679,8 +679,8 @@ describe('KIP37 token contract class test', () => {
+             expect(minted.events.TransferBatch.returnValues.operator.toLowerCase()).to.equal(sender.address.toLowerCase())
+             expect(minted.events.TransferBatch.returnValues.from.toLowerCase()).to.equal('0x0000000000000000000000000000000000000000')
+             expect(minted.events.TransferBatch.returnValues.to.toLowerCase()).to.equal(testAccount.address.toLowerCase())
+-            expect(_.isArray(minted.events.TransferBatch.returnValues.ids)).to.be.true
+-            expect(_.isArray(minted.events.TransferBatch.returnValues.values)).to.be.true
++            expect(Array.isArray(minted.events.TransferBatch.returnValues.ids)).to.be.true
++            expect(Array.isArray(minted.events.TransferBatch.returnValues.values)).to.be.true
+             expect(minted.events.TransferBatch.returnValues.ids.length).to.equal(ids.length)
+             expect(minted.events.TransferBatch.returnValues.values.length).to.equal(ids.length)
+             for (let i = 0; i < ids.length; i++) {
+@@ -702,8 +702,8 @@ describe('KIP37 token contract class test', () => {
+             expect(minted.events.TransferBatch.returnValues.operator.toLowerCase()).to.equal(sender.address.toLowerCase())
+             expect(minted.events.TransferBatch.returnValues.from.toLowerCase()).to.equal('0x0000000000000000000000000000000000000000')
+             expect(minted.events.TransferBatch.returnValues.to.toLowerCase()).to.equal(testAccount.address.toLowerCase())
+-            expect(_.isArray(minted.events.TransferBatch.returnValues.ids)).to.be.true
+-            expect(_.isArray(minted.events.TransferBatch.returnValues.values)).to.be.true
++            expect(Array.isArray(minted.events.TransferBatch.returnValues.ids)).to.be.true
++            expect(Array.isArray(minted.events.TransferBatch.returnValues.values)).to.be.true
+             expect(minted.events.TransferBatch.returnValues.ids.length).to.equal(ids.length)
+             expect(minted.events.TransferBatch.returnValues.values.length).to.equal(ids.length)
+             for (let i = 0; i < ids.length; i++) {
+diff --git a/node_modules/caver-js/test/packages/caver.rpc.js b/node_modules/caver-js/test/packages/caver.rpc.js
+index 007868f..5892bed 100644
+--- a/node_modules/caver-js/test/packages/caver.rpc.js
++++ b/node_modules/caver-js/test/packages/caver.rpc.js
+@@ -16,7 +16,9 @@
+     along with the caver-js. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
++const isString = arg => typeof arg === 'string';
++const isNumber = arg => typeof arg === 'number';
+ const chai = require('chai')
+ const sinon = require('sinon')
+ const sinonChai = require('sinon-chai')
+@@ -56,12 +58,12 @@ describe('caver.rpc.klay', () => {
+         it('should encode an account key using the Recursive Length Prefix (RLP) encoding scheme.', async () => {
+             // AccountKeyNil
+             let result = await caver.rpc.klay.encodeAccountKey({ keyType: 0, key: {} })
+-            expect(_.isString(result)).to.be.true
++            expect(isString(result)).to.be.true
+             expect(result).to.be.equal('0x80')
+ 
+             // AccountKeyLegacy
+             result = await caver.rpc.klay.encodeAccountKey({ keyType: 1, key: {} })
+-            expect(_.isString(result)).to.be.true
++            expect(isString(result)).to.be.true
+             expect(result).to.be.equal('0x01c0')
+ 
+             let account = caver.account.createWithAccountKeyLegacy(testKeyring.address)
+@@ -77,7 +79,7 @@ describe('caver.rpc.klay', () => {
+                 },
+             }
+             result = await caver.rpc.klay.encodeAccountKey(keyObject)
+-            expect(_.isString(result)).to.be.true
++            expect(isString(result)).to.be.true
+             expect(result).to.be.equal('0x02a102dbac81e8486d68eac4e6ef9db617f7fbd79a04a3b323c982a09cdfc61f0ae0e8')
+             account = caver.account.create(
+                 testKeyring.address,
+@@ -88,7 +90,7 @@ describe('caver.rpc.klay', () => {
+ 
+             // AccountKeyFail
+             result = await caver.rpc.klay.encodeAccountKey({ keyType: 3, key: {} })
+-            expect(_.isString(result)).to.be.true
++            expect(isString(result)).to.be.true
+             expect(result).to.be.equal('0x03c0')
+ 
+             account = caver.account.createWithAccountKeyFail(testKeyring.address)
+@@ -133,7 +135,7 @@ describe('caver.rpc.klay', () => {
+                 },
+             }
+             result = await caver.rpc.klay.encodeAccountKey(keyObject)
+-            expect(_.isString(result)).to.be.true
++            expect(isString(result)).to.be.true
+             expect(result).to.be.equal(
+                 '0x04f89303f890e301a102c734b50ddb229be5e929fc4aa8080ae8240a802d23d3290e5e6156ce029b110ee301a10212d45f1cc56fbd6cd8fc877ab63b5092ac77db907a8a42c41dad3e98d7c64dfbe301a102ea9a9f85065a00d7b9ffd3a8532a574035984587fd08107d8f4cbad6b786b0cde301a1038551bc489d62fa2e6f767ba87fe93a62b679fca8ff3114eb5805e6487b51e8f6'
+             )
+@@ -194,7 +196,7 @@ describe('caver.rpc.klay', () => {
+                 ],
+             }
+             result = await caver.rpc.klay.encodeAccountKey(keyObject)
+-            expect(_.isString(result)).to.be.true
++            expect(isString(result)).to.be.true
+             expect(result).to.be.equal(
+                 '0x05f898a302a103e4a01407460c1c03ac0c82fd84f303a699b210c0b054f4aff72ff7dcdf01512db84e04f84b02f848e301a103e4a01407460c1c03ac0c82fd84f303a699b210c0b054f4aff72ff7dcdf01512de301a10336f6355f5b532c3c1606f18fa2be7a16ae200c5159c8031dd25bfa389a4c9c06a302a102c8785266510368d9372badd4c7f4a94b692e82ba74e0b5e26b34558b0f081447'
+             )
+@@ -482,7 +484,7 @@ describe('caver.rpc.klay', () => {
+             expect(ret.baseFeePerGas.length).to.equal(bc + 1) // include next base fee
+             expect(ret.baseFeePerGas.every(bf => caver.utils.isHexStrict(bf))).to.be.true
+             expect(ret.gasUsedRatio.length).to.equal(bc)
+-            expect(ret.gasUsedRatio.every(gur => _.isNumber(gur))).to.be.true
++            expect(ret.gasUsedRatio.every(gur => isNumber(gur))).to.be.true
+         }
+ 
+         it('CAVERJS-UNIT-RPC-023: should call klay_feeHistory', async () => {
+@@ -571,7 +573,7 @@ describe('caver.rpc.klay', () => {
+         it('CAVERJS-UNIT-RPC-026: should return suggested max priority fee per gas', async () => {
+             const ret = await caver.rpc.klay.getMaxPriorityFeePerGas()
+             const gasPrice = await caver.rpc.klay.getGasPrice()
+-            expect(_.isString(ret)).to.be.true
++            expect(isString(ret)).to.be.true
+             expect(ret).to.equal(gasPrice)
+         }).timeout(100000)
+     })
+@@ -585,7 +587,7 @@ describe('caver.rpc.klay', () => {
+             to: '0x00f5f5f3a25f142fafd0af24a754fafa340f32c7',
+         }
+         function checkAccessListResult(blockNumberOrTag, ret) {
+-            expect(_.isArray(ret.accessList)).to.be.true
++            expect(Array.isArray(ret.accessList)).to.be.true
+             expect(ret.accessList.length).to.equal(0) // For now Klaytn will return empty access list
+             expect(ret.gasUsed).to.equal('0x0') // For now Klaytn will return zero gasUsed
+         }
+diff --git a/node_modules/caver-js/test/packages/caver.transaction/ethereumAccessList.js b/node_modules/caver-js/test/packages/caver.transaction/ethereumAccessList.js
+index 7e9007d..a0e6ef7 100644
+--- a/node_modules/caver-js/test/packages/caver.transaction/ethereumAccessList.js
++++ b/node_modules/caver-js/test/packages/caver.transaction/ethereumAccessList.js
+@@ -16,7 +16,7 @@
+     along with the caver-js. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
+ const chai = require('chai')
+ const sinon = require('sinon')
+ const sinonChai = require('sinon-chai')
+@@ -49,7 +49,7 @@ let roleBasedKeyring
+ const sandbox = sinon.createSandbox()
+ 
+ function isValidV(sigs) {
+-    if (!_.isArray(sigs)) sigs = [sigs]
++    if (!Array.isArray(sigs)) sigs = [sigs]
+     for (const s of sigs) {
+         const vNumber = utils.hexToNumber(s.v)
+         if (vNumber !== 0 && vNumber !== 1) {
+diff --git a/node_modules/caver-js/test/packages/caver.transaction/ethereumDynamicFee.js b/node_modules/caver-js/test/packages/caver.transaction/ethereumDynamicFee.js
+index f4d4b8e..f75b54d 100644
+--- a/node_modules/caver-js/test/packages/caver.transaction/ethereumDynamicFee.js
++++ b/node_modules/caver-js/test/packages/caver.transaction/ethereumDynamicFee.js
+@@ -16,7 +16,7 @@
+     along with the caver-js. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
+ const chai = require('chai')
+ const sinon = require('sinon')
+ const sinonChai = require('sinon-chai')
+@@ -51,7 +51,7 @@ let baseFee
+ const sandbox = sinon.createSandbox()
+ 
+ function isValidV(sigs) {
+-    if (!_.isArray(sigs)) sigs = [sigs]
++    if (!Array.isArray(sigs)) sigs = [sigs]
+     for (const s of sigs) {
+         const vNumber = utils.hexToNumber(s.v)
+         if (vNumber !== 0 && vNumber !== 1) {
+diff --git a/node_modules/caver-js/test/packages/caver.utils.js b/node_modules/caver-js/test/packages/caver.utils.js
+index 00dc5a3..c2a2599 100644
+--- a/node_modules/caver-js/test/packages/caver.utils.js
++++ b/node_modules/caver-js/test/packages/caver.utils.js
+@@ -18,7 +18,7 @@
+ 
+ const BN = require('bn.js')
+ const BigNumber = require('bignumber.js')
+-const _ = require('lodash')
++// const _ = require('lodash')
+ const testRPCURL = require('../testrpc')
+ const { expect } = require('../extendedChai')
+ 
+@@ -26,6 +26,8 @@ const utils = require('./utils')
+ const Caver = require('../../index')
+ const SignatureData = require('../../packages/caver-wallet/src/keyring/signatureData')
+ 
++const isString = arg => typeof arg === 'string'
++
+ let caver
+ beforeEach(() => {
+     caver = new Caver(testRPCURL)
+@@ -1939,7 +1941,7 @@ describe('caver.utils.convertFromPeb', () => {
+ 
+         const converted = caver.utils.convertFromPeb(amount, 'peb')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -1949,7 +1951,7 @@ describe('caver.utils.convertFromPeb', () => {
+ 
+         const converted = caver.utils.convertFromPeb(amount, 'kpeb')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -1959,7 +1961,7 @@ describe('caver.utils.convertFromPeb', () => {
+ 
+         const converted = caver.utils.convertFromPeb(amount, 'Mpeb')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -1969,7 +1971,7 @@ describe('caver.utils.convertFromPeb', () => {
+ 
+         const converted = caver.utils.convertFromPeb(amount, 'Gpeb')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -1979,7 +1981,7 @@ describe('caver.utils.convertFromPeb', () => {
+ 
+         const converted = caver.utils.convertFromPeb(amount, 'Ston')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -1989,7 +1991,7 @@ describe('caver.utils.convertFromPeb', () => {
+ 
+         const converted = caver.utils.convertFromPeb(amount, 'uKLAY')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -1999,7 +2001,7 @@ describe('caver.utils.convertFromPeb', () => {
+ 
+         const converted = caver.utils.convertFromPeb(amount, 'mKLAY')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2009,7 +2011,7 @@ describe('caver.utils.convertFromPeb', () => {
+ 
+         const converted = caver.utils.convertFromPeb(amount, 'KLAY')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2019,7 +2021,7 @@ describe('caver.utils.convertFromPeb', () => {
+ 
+         const converted = caver.utils.convertFromPeb(amount, 'kKLAY')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2029,7 +2031,7 @@ describe('caver.utils.convertFromPeb', () => {
+ 
+         const converted = caver.utils.convertFromPeb(amount, 'MKLAY')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2039,7 +2041,7 @@ describe('caver.utils.convertFromPeb', () => {
+ 
+         const converted = caver.utils.convertFromPeb(amount, 'GKLAY')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ })
+@@ -2050,7 +2052,7 @@ describe('caver.utils.convertToPeb', () => {
+ 
+         const converted = caver.utils.convertToPeb(1, 'peb')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2059,7 +2061,7 @@ describe('caver.utils.convertToPeb', () => {
+ 
+         const converted = caver.utils.convertToPeb(1, 'kpeb')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2068,7 +2070,7 @@ describe('caver.utils.convertToPeb', () => {
+ 
+         const converted = caver.utils.convertToPeb(1, 'Mpeb')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2077,7 +2079,7 @@ describe('caver.utils.convertToPeb', () => {
+ 
+         const converted = caver.utils.convertToPeb(1, 'Gpeb')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2086,7 +2088,7 @@ describe('caver.utils.convertToPeb', () => {
+ 
+         const converted = caver.utils.convertToPeb(1, 'Ston')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2095,7 +2097,7 @@ describe('caver.utils.convertToPeb', () => {
+ 
+         const converted = caver.utils.convertToPeb(1, 'uKLAY')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2104,7 +2106,7 @@ describe('caver.utils.convertToPeb', () => {
+ 
+         const converted = caver.utils.convertToPeb(1, 'mKLAY')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2113,14 +2115,14 @@ describe('caver.utils.convertToPeb', () => {
+ 
+         const converted = caver.utils.convertToPeb(1, 'KLAY')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+ 
+         const expectedForDecimalPoints = '2500000000000000000'
+ 
+         const convertingDecimalPoint = caver.utils.convertToPeb(new BigNumber(2.5), 'KLAY')
+ 
+-        expect(_.isString(convertingDecimalPoint)).to.be.true
++        expect(isString(convertingDecimalPoint)).to.be.true
+         expect(convertingDecimalPoint === expectedForDecimalPoints).to.be.true
+     })
+ 
+@@ -2129,7 +2131,7 @@ describe('caver.utils.convertToPeb', () => {
+ 
+         const converted = caver.utils.convertToPeb(1, 'kKLAY')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2138,7 +2140,7 @@ describe('caver.utils.convertToPeb', () => {
+ 
+         const converted = caver.utils.convertToPeb(1, 'MKLAY')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ 
+@@ -2147,7 +2149,7 @@ describe('caver.utils.convertToPeb', () => {
+ 
+         const converted = caver.utils.convertToPeb(1, 'GKLAY')
+ 
+-        expect(_.isString(converted)).to.be.true
++        expect(isString(converted)).to.be.true
+         expect(converted === expected).to.be.true
+     })
+ })
+diff --git a/node_modules/caver-js/test/packages/caver.wallet.js b/node_modules/caver-js/test/packages/caver.wallet.js
+index 592ec5b..f82cd5f 100644
+--- a/node_modules/caver-js/test/packages/caver.wallet.js
++++ b/node_modules/caver-js/test/packages/caver.wallet.js
+@@ -16,7 +16,7 @@
+     along with the caver-js. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
+ const chai = require('chai')
+ const sinon = require('sinon')
+ const sinonChai = require('sinon-chai')
+@@ -622,7 +622,7 @@ describe('wallet.signMessage', () => {
+             const signed = caver.wallet.signMessage(keyring.address, data, caver.wallet.keyring.role.roleTransactionKey)
+ 
+             expect(signed.messageHash).to.equal(caver.utils.hashMessage(data))
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(keyring.roleTransactionKey.length)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+             expect(signed.message).to.equal(data)
+@@ -642,7 +642,7 @@ describe('wallet.signMessage', () => {
+             const signed = caver.wallet.signMessage(keyring.address, data, caver.wallet.keyring.role.roleTransactionKey, 0)
+ 
+             expect(signed.messageHash).to.equal(caver.utils.hashMessage(data))
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(1)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+             expect(signed.message).to.equal(data)
+diff --git a/node_modules/caver-js/test/packages/caver.wallet.keyring.js b/node_modules/caver-js/test/packages/caver.wallet.keyring.js
+index 5039378..9667b20 100644
+--- a/node_modules/caver-js/test/packages/caver.wallet.keyring.js
++++ b/node_modules/caver-js/test/packages/caver.wallet.keyring.js
+@@ -16,7 +16,7 @@
+     along with the caver-js. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+-const _ = require('lodash')
++// const _ = require('lodash')
+ const chai = require('chai')
+ const sinon = require('sinon')
+ const sinonChai = require('sinon-chai')
+@@ -98,7 +98,7 @@ function validateKeystore(data, password, { address, expectedKey, keyringLength
+ 
+     expect(Object.getOwnPropertyNames(data)).to.deep.equal(objectKeys)
+     if (version > 3) {
+-        if (_.isArray(keyringLength)) {
++        if (Array.isArray(keyringLength)) {
+             for (let i = 0; i < keyringLength.length; i++) {
+                 expect(data.keyring[i].length).to.equal(keyringLength[i])
+             }
+@@ -945,7 +945,7 @@ describe('keyring.sign', () => {
+             const signed = coupled.sign(hash, chainId, caver.wallet.keyring.role.roleTransactionKey)
+ 
+             expect(signSpy).to.have.been.calledOnce
+-            expect(_.isArray(signed)).to.be.true
++            expect(Array.isArray(signed)).to.be.true
+             expect(signed[0] instanceof SignatureData).to.be.true
+         })
+     })
+@@ -984,7 +984,7 @@ describe('keyring.sign', () => {
+             const signed = decoupled.sign(hash, chainId, caver.wallet.keyring.role.roleTransactionKey)
+ 
+             expect(signSpy).to.have.been.calledOnce
+-            expect(_.isArray(signed)).to.be.true
++            expect(Array.isArray(signed)).to.be.true
+             expect(signed[0] instanceof SignatureData).to.be.true
+         })
+     })
+@@ -1023,7 +1023,7 @@ describe('keyring.sign', () => {
+             const signed = multiSig.sign(hash, chainId, caver.wallet.keyring.role.roleTransactionKey)
+ 
+             expect(signSpy).to.have.been.calledOnce
+-            expect(_.isArray(signed)).to.be.true
++            expect(Array.isArray(signed)).to.be.true
+             expect(signed[0] instanceof SignatureData).to.be.true
+             expect(signed.length).to.equal(multiSig.keys.length)
+         })
+@@ -1063,7 +1063,7 @@ describe('keyring.sign', () => {
+             const signed = roleBased.sign(hash, chainId, caver.wallet.keyring.role.roleTransactionKey)
+ 
+             expect(signSpy).to.have.been.calledOnce
+-            expect(_.isArray(signed)).to.be.true
++            expect(Array.isArray(signed)).to.be.true
+             expect(signed[0] instanceof SignatureData).to.be.true
+             expect(signed.length).to.equal(roleBased.roleTransactionKey.length)
+         })
+@@ -1126,7 +1126,7 @@ describe('keyring.ecsign', () => {
+     const hash = '0xe9a11d9ef95fb437f75d07ce768d43e74f158dd54b106e7d3746ce29d545b550'
+ 
+     function isValidV(sigs) {
+-        if (!_.isArray(sigs)) sigs = [sigs]
++        if (!Array.isArray(sigs)) sigs = [sigs]
+         for (const s of sigs) {
+             const vNumber = utils.hexToNumber(s.v)
+             if (vNumber !== 0 && vNumber !== 1) {
+@@ -1149,7 +1149,7 @@ describe('keyring.ecsign', () => {
+             const signed = coupled.ecsign(hash, caver.wallet.keyring.role.roleTransactionKey)
+ 
+             expect(ecsignSpy).to.have.been.calledOnce
+-            expect(_.isArray(signed)).to.be.true
++            expect(Array.isArray(signed)).to.be.true
+             expect(signed[0] instanceof SignatureData).to.be.true
+             expect(isValidV(signed)).to.be.true
+         })
+@@ -1191,7 +1191,7 @@ describe('keyring.ecsign', () => {
+             const signed = decoupled.ecsign(hash, caver.wallet.keyring.role.roleTransactionKey)
+ 
+             expect(ecsignSpy).to.have.been.calledOnce
+-            expect(_.isArray(signed)).to.be.true
++            expect(Array.isArray(signed)).to.be.true
+             expect(signed[0] instanceof SignatureData).to.be.true
+             expect(isValidV(signed)).to.be.true
+         })
+@@ -1233,7 +1233,7 @@ describe('keyring.ecsign', () => {
+             const signed = multiSig.ecsign(hash, caver.wallet.keyring.role.roleTransactionKey)
+ 
+             expect(ecsignSpy).to.have.been.calledOnce
+-            expect(_.isArray(signed)).to.be.true
++            expect(Array.isArray(signed)).to.be.true
+             expect(signed[0] instanceof SignatureData).to.be.true
+             expect(signed.length).to.equal(multiSig.keys.length)
+             expect(isValidV(signed)).to.be.true
+@@ -1276,7 +1276,7 @@ describe('keyring.ecsign', () => {
+             const signed = roleBased.ecsign(hash, caver.wallet.keyring.role.roleTransactionKey)
+ 
+             expect(ecsignSpy).to.have.been.calledOnce
+-            expect(_.isArray(signed)).to.be.true
++            expect(Array.isArray(signed)).to.be.true
+             expect(signed[0] instanceof SignatureData).to.be.true
+             expect(signed.length).to.equal(roleBased.roleTransactionKey.length)
+             expect(isValidV(signed)).to.be.true
+@@ -1363,7 +1363,7 @@ describe('keyring.signMessage', () => {
+             expect(signSpy).to.have.been.calledOnce
+             expect(signed.message).to.equal(data)
+             expect(caver.utils.hashMessage(data)).to.equal(signed.messageHash)
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(1)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+         })
+@@ -1377,7 +1377,7 @@ describe('keyring.signMessage', () => {
+             expect(signSpy).to.have.been.calledOnce
+             expect(signed.message).to.equal(data)
+             expect(caver.utils.hashMessage(data)).to.equal(signed.messageHash)
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(1)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+         })
+@@ -1391,7 +1391,7 @@ describe('keyring.signMessage', () => {
+             expect(signSpy).to.have.been.calledOnce
+             expect(signed.message).to.equal(data)
+             expect(caver.utils.hashMessage(data)).to.equal(signed.messageHash)
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(1)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+         })
+@@ -1420,7 +1420,7 @@ describe('keyring.signMessage', () => {
+             expect(signSpy).to.have.been.calledOnce
+             expect(signed.message).to.equal(data)
+             expect(caver.utils.hashMessage(data)).to.equal(signed.messageHash)
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(1)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+         })
+@@ -1434,7 +1434,7 @@ describe('keyring.signMessage', () => {
+             expect(signSpy).to.have.been.calledOnce
+             expect(signed.message).to.equal(data)
+             expect(caver.utils.hashMessage(data)).to.equal(signed.messageHash)
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(1)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+         })
+@@ -1448,7 +1448,7 @@ describe('keyring.signMessage', () => {
+             expect(signSpy).to.have.been.calledOnce
+             expect(signed.message).to.equal(data)
+             expect(caver.utils.hashMessage(data)).to.equal(signed.messageHash)
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(1)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+         })
+@@ -1477,7 +1477,7 @@ describe('keyring.signMessage', () => {
+             expect(signSpy).to.have.been.calledOnce
+             expect(signed.message).to.equal(data)
+             expect(caver.utils.hashMessage(data)).to.equal(signed.messageHash)
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(1)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+         })
+@@ -1491,7 +1491,7 @@ describe('keyring.signMessage', () => {
+             expect(signSpy).to.have.been.calledOnce
+             expect(signed.message).to.equal(data)
+             expect(caver.utils.hashMessage(data)).to.equal(signed.messageHash)
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(multiSig.keys.length)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+         })
+@@ -1505,7 +1505,7 @@ describe('keyring.signMessage', () => {
+             expect(signSpy).to.have.been.calledOnce
+             expect(signed.message).to.equal(data)
+             expect(caver.utils.hashMessage(data)).to.equal(signed.messageHash)
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(1)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+         })
+@@ -1534,7 +1534,7 @@ describe('keyring.signMessage', () => {
+             expect(signSpy).to.have.been.calledOnce
+             expect(signed.message).to.equal(data)
+             expect(caver.utils.hashMessage(data)).to.equal(signed.messageHash)
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(1)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+         })
+@@ -1548,7 +1548,7 @@ describe('keyring.signMessage', () => {
+             expect(signSpy).to.have.been.calledOnce
+             expect(signed.message).to.equal(data)
+             expect(caver.utils.hashMessage(data)).to.equal(signed.messageHash)
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(roleBased.roleTransactionKey.length)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+         })
+@@ -1562,7 +1562,7 @@ describe('keyring.signMessage', () => {
+             expect(signSpy).to.have.been.calledOnce
+             expect(signed.message).to.equal(data)
+             expect(caver.utils.hashMessage(data)).to.equal(signed.messageHash)
+-            expect(_.isArray(signed.signatures)).to.be.true
++            expect(Array.isArray(signed.signatures)).to.be.true
+             expect(signed.signatures.length).to.equal(1)
+             expect(signed.signatures[0] instanceof SignatureData).to.be.true
+         })
