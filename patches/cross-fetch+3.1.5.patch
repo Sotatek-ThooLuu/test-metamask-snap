@@ -1,0 +1,19 @@
+diff --git a/node_modules/cross-fetch/dist/browser-polyfill.js b/node_modules/cross-fetch/dist/browser-polyfill.js
+index 11ccad1..813d52e 100644
+--- a/node_modules/cross-fetch/dist/browser-polyfill.js
++++ b/node_modules/cross-fetch/dist/browser-polyfill.js
+@@ -519,6 +519,14 @@ var irrelevant = (function (exports) {
+     self.Response = Response;
+   }
+ 
++  if (!self.Response) {
++    self.Response = Response;
++  }
++
++  if (!self.Headers) {
++    self.Headers = Headers;
++  }
++
+   exports.Headers = Headers;
+   exports.Request = Request;
+   exports.Response = Response;
